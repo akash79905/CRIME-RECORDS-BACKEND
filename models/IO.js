@@ -3,9 +3,9 @@
 const mongoose = require('mongoose');
 
 const IOSchema = mongoose.Schema({
-	code: { type: String, required: true, index: { unique: true } },
+	code: String,
 	password: String,
-    phoneNumber: { type: Number, required: true },
+    phoneNumber: { type: Number, required: true , index: { unique: true }},
 	fullName: String,
 	address: String,
 	createdAt: Date,

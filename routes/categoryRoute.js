@@ -2,11 +2,12 @@
 
 const express = require('express');
 const app = express();
+const IP = require('../models/IP');
 const Category = require('../models/Category');
+const RequestIp = require('@supercharge/request-ip');
 
 app.post('/add', (req, res, next) => {
     const category = new Category({
-        category_id: req.body.category_id,
         name: req.body.name,
         active_flag: true,
 		createdAt: new Date(),
@@ -14,14 +15,17 @@ app.post('/add', (req, res, next) => {
 	});
 
 
-	category.save().then((result) => {
-		res.status(201).json({
+	category.save().then(async(result) => {
+		
+		await addIP(req, "Category Added");
+
+		res.status(200).json({
 			documents: result,
 		});
     })
     .catch((err) => {
         console.error(err);
-        res.json({
+        res.status(400).json({
             message: 'error has occured.',
             documents: null
         })
@@ -29,7 +33,7 @@ app.post('/add', (req, res, next) => {
 });
 
 app.post('/update', (req, res, next) => {
-	const filter = { category_id: req.body.category_id };
+	const filter = { name: req.body.name };
 	const options = { upsert: true };
 
 	const updatedDoc = {
@@ -41,14 +45,17 @@ app.post('/update', (req, res, next) => {
 	};
 
 	Category.updateOne(filter, updatedDoc, options)
-		.then((result) => {
-			res.status(201).json({
+		.then(async (result) => {
+			
+			await addIP(req, 'Category Updated');
+
+			res.status(200).json({
 				documents: result,
 			});
 		})
 		.catch((err) => {
 			console.error(err);
-			res.json({
+			res.status(400).json({
 				message: 'error has occured.',
 				documents: null,
 			});
@@ -58,51 +65,75 @@ app.post('/update', (req, res, next) => {
 app.get('/', (req, res, next) => {
 	Category.find()
 		.sort('-updatedAt')
-		.then((documents) => {
+		.then(async (documents) => {
+
+			await addIP(req, 'Get All Categories');
+
 			res.status(200).json({
 				documents: documents,
 			});
 		})
 		.catch((err) => {
 			console.error(err);
-			res.json({
+			res.status(400).json({
 				message: 'error has occured.',
 				documents: null,
 			});
 		});
 });
 
-app.get('/:category_id', (req, res, next) => {
-	var filter = { category_id: req.params.category_id };
+app.get('/:name', (req, res, next) => {
+	var filter = { name: req.params.name };
 	Category.findOne(filter)
-		.then((document) => {
+		.then(async (document) => {
+			
+			await addIP(req, 'Get Category Entry');
+
 			res.status(200).json({
 				documents: document,
 			});
 		})
 		.catch((err) => {
 			console.error(err);
-			res.json({
+			res.status(400).json({
 				documents: null,
 			});
 		});
 });
 
 
-app.delete('/:category_id', (req, res, next) => {
-	var filter = { category_id: req.params.category_id };
+app.delete('/:name', (req, res, next) => {
+	var filter = { name: req.params.name };
 	Category.deleteOne(filter)
-		.then((document) => {
+		.then(async (document) => {
+
+			await addIP(req, 'Category Deleted');
+
 			res.status(200).json({
 				documents: document,
 			});
 		})
 		.catch((err) => {
 			console.error(err);
-			res.json({
+			res.status(400).json({
 				documents: null,
 			});
 		});
 });
+
+async function addIP(req, message) {
+	const ip = RequestIp.getClientIp(req);
+	var ipEntry = new IP({
+		ip: ip,
+		executedBy: req.user.tokenkey,
+		message: message,
+		time: new Date(),
+	});
+
+	if (req.user.code !== null) {
+		ipEntry['extraInfo'] = req.user.code;
+	}
+	await ipEntry.save();
+}
 
 module.exports = app;

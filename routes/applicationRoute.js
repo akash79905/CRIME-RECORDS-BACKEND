@@ -2,10 +2,25 @@
 
 const express = require('express');
 const app = express();
+const IP = require('../models/IP');
 const Application = require('../models/Application');
 const Department = require('../models/Department');
+const RequestIp = require('@supercharge/request-ip');
+const Order = require('../models/Order');
+const Transfer = require('../models/Transfer')
 
-app.post('/add', async(req, res, next) => {
+app.post('/add', async (req, res, next) => {
+	
+	Application.findOne({ application_id: req.body.application_id }).then(async (document) => {
+		if (document != null) {
+			res.status(400).json({
+				documents: null,
+				message: 'Application ID is used'
+			});
+		}
+	});
+
+
 	var document = req.body;
 	document['updatedAt'] = new Date();
 	document['createdAt'] = new Date();
@@ -17,14 +32,17 @@ app.post('/add', async(req, res, next) => {
 
 	application
 		.save()
-		.then((result) => {
-			res.status(201).json({
+		.then(async(result) => {
+
+			await addIP(req, "Application Added")
+
+			res.status(200).json({
 				documents: result,
 			});
 		})
 		.catch((err) => {
 			console.error(err);
-			res.json({
+			res.status(400).json({
 				message: 'error has occured.',
 				documents: null,
 			});
@@ -39,75 +57,104 @@ app.post('/update/:application_id', (req, res, next) => {
 	updatedDoc['updatedAt'] = new Date();
 
 	Application.replaceOne(filter, updatedDoc, options)
-		.then((result) => {
-			res.status(201).json({
+		.then(async(result) => {
+
+			await addIP(req, "Application Updated")
+
+			res.status(200).json({
 				message: 'application is updated.',
 				documents: result,
 			});
 		})
 		.catch((err) => {
 			console.error(err);
-			res.json({
+			res.status(400).json({
 				message: 'error has occured.',
 				documents: null,
 			});
 		});
 });
 
-app.post('/sendto/:name/:application_id', (req, res, next) => {
-	const filter = { application_id: req.params.application_id };
-	const options = { upsert: true };
+app.post('/transfer', (req, res, next) => {
+	try {
+		
+		const filter = { application_id: req.body.application_id };
+		const options = { upsert: true };
 
-	var updatedDoc = req.body;
-	updatedDoc['updatedAt'] = new Date();
-	updatedDoc['at_stage'] = req.params.name;
-	var path = updatedDoc['path'] + '/' + req.params.name;
-	updatedDoc['path'] = path;
+		var updatedDoc = req.body;
+		updatedDoc['updatedAt'] = new Date();
 
-	Application.replaceOne(filter, updatedDoc, options)
-		.then((result) => {
-			res.status(201).json({
-				message: 'application is updated.',
-				documents: result,
-			});
+		var transfer = new Transfer(updatedDoc);
+		transfer.save().then((result) => {
+		
+			Application.deleteOne(filter)
+				.then(async(result) => {
+			
+					if ('ioPhoneNumber' in req.body) {
+						req.user.code = req.body.ioPhoneNumber;
+					}
+					else {
+						req.user.code = req.body.at_stage;
+					}
+					await addIP(req, "Application Transfered");
+
+					res.status(200).json({
+						message: 'application is transfered.',
+						documents: result
+					});
+				})
 		})
-		.catch((err) => {
+	}
+	catch(err){
 			console.error(err);
-			res.json({
+			res.status(400).json({
 				message: 'error has occured.',
 				documents: null,
 			});
-		});
+	};
 });
 
-app.post('/assignIO/:application_id', (req, res, next) => {
-	const filter = { application_id: req.params.application_id };
-	const options = { upsert: true };
+app.post('/accept', (req, res, next) => {
+	try {
+		
+		const filter = { application_id: req.body.application_id };
+		const options = { upsert: true };
 
-	var updatedDoc = req.body;
-	updatedDoc['updatedAt'] = new Date();
+		var updatedDoc = req.body;
+		updatedDoc['updatedAt'] = new Date();
 
-	Application.replaceOne(filter, updatedDoc, options)
-		.then((result) => {
-			res.status(201).json({
-				message: 'application is updated.',
-				documents: result,
-			});
+		var application = new Application(updatedDoc);
+		application.save().then((result) => {
+		
+			Transfer.deleteOne(filter)
+				.then(async(result) => {
+			
+					await addIP(req, "Application Accepted");
+
+					res.status(200).json({
+						message: 'application is Accepted.',
+						documents: result
+					});
+				})
 		})
-		.catch((err) => {
+	}
+	catch(err){
 			console.error(err);
-			res.json({
+			res.status(400).json({
 				message: 'error has occured.',
 				documents: null,
 			});
-		});
+	};
 });
 
 
 app.get('/', (req, res, next) => {
 	Application.find()
 		.sort('-updatedAt')
-		.then((documents) => {
+		.then(async(documents) => {
+
+			await addIP(req, "Get All Applications");
+
 			res.status(200).json({
 				message: 'Applications fetched successfully.',
 				documents: documents,
@@ -115,16 +162,28 @@ app.get('/', (req, res, next) => {
 		})
 		.catch((err) => {
 			console.error(err);
-			res.json({
+			res.status(400).json({
 				message: 'error has occured.',
 				documents: null,
 			});
 		});
 });
 
-app.get('/:application_id', (req, res, next) => {
-	Application.find({ application_id: req.params.application_id })
-		.then((documents) => {
+app.get('/transferapps', (req, res, next) => {
+
+	var filter;
+	if (req.user.code) {
+		filter = { ioPhoneNumber: req.user.tokenkey };	
+	}
+	else {
+		filter = { at_stage: req.user.tokenkey };
+	}
+	console.log(filter);
+	Transfer.find(filter)
+		.sort('-updatedAt')
+		.then(async (documents) => {
+			await addIP(req, 'Get All Transfer Applications');
+
 			res.status(200).json({
 				message: 'Applications fetched successfully.',
 				documents: documents,
@@ -132,7 +191,28 @@ app.get('/:application_id', (req, res, next) => {
 		})
 		.catch((err) => {
 			console.error(err);
-			res.json({
+			res.status(400).json({
+				message: 'error has occured.',
+				documents: null,
+			});
+		});
+});
+
+
+app.get('/:application_id', (req, res, next) => {
+	Application.find({ application_id: req.params.application_id })
+		.then(async(documents) => {
+
+			await addIP(req, "Get Applications Entry");
+
+			res.status(200).json({
+				message: 'Applications fetched successfully.',
+				documents: documents,
+			});
+		})
+		.catch((err) => {
+			console.error(err);
+			res.status(400).json({
 				message: 'error has occured.',
 				documents: null,
 			});
@@ -142,7 +222,10 @@ app.get('/:application_id', (req, res, next) => {
 
 app.get('/io/:ioPhoneNumber', (req, res, next) => {
 	Application.find({ ioPhoneNumber: req.params.ioPhoneNumber })
-		.then((documents) => {
+		.then(async(documents) => {
+
+			await addIP(req, "Get All Applications");
+
 			res.status(200).json({
 				message: 'Applications fetched successfully.',
 				documents: documents,
@@ -150,7 +233,7 @@ app.get('/io/:ioPhoneNumber', (req, res, next) => {
 		})
 		.catch((err) => {
 			console.error(err);
-			res.json({
+			res.status(400).json({
 				message: 'error has occured.',
 				documents: null,
 			});
@@ -159,7 +242,10 @@ app.get('/io/:ioPhoneNumber', (req, res, next) => {
 
 app.get('/department/:name', (req, res, next) => {
 	Application.find({ path: { "$regex": ".*"+ req.params.name +".*"} })
-		.then((documents) => {
+		.then(async(documents) => {
+
+			await addIP(req, "Get All Applications");
+
 			res.status(200).json({
 				message: 'Applications fetched successfully.',
 				documents: documents,
@@ -167,22 +253,25 @@ app.get('/department/:name', (req, res, next) => {
 		})
 		.catch((err) => {
 			console.error(err);
-			res.json({
+			res.status(400).json({
 				message: 'error has occured.',
 				documents: null,
 			});
 		});
 });
 
-app.get('/pending/:month', (req, res, next) => {
+app.get('/:status/:month', (req, res, next) => {
 	Application.find({
-		application_status: 'પેન્ડિંગ',
+		application_status: req.params.status,
 		application_date: {
 			$lt: new Date(new Date().getTime() - req.params.month * 30 * 24* 3600 * 1000),
 		},
 	})
 		.sort('-updatedAt')
-		.then((documents) => {
+		.then(async(documents) => {
+
+			await addIP(req, "Get All Applications");
+
 			res.status(200).json({
 				message: 'Applications fetched successfully.',
 				documents: documents,
@@ -190,23 +279,26 @@ app.get('/pending/:month', (req, res, next) => {
 		})
 		.catch((err) => {
 			console.error(err);
-			res.json({
+			res.status(400).json({
 				message: 'error has occured.',
 				documents: null,
 			});
 		});
 });
 
-app.get('/io/pending/:ioPhoneNumber/:month', (req, res, next) => {
+app.get('/io/:status/:ioPhoneNumber/:month', (req, res, next) => {
 	Application.find({
-		application_status: 'પેન્ડિંગ',
+		application_status: req.params.status,
 		application_date: {
 			$lt: new Date(new Date().getTime() - req.params.month * 30 * 24* 3600 * 1000),
 		},
 		ioPhoneNumber: req.params.ioPhoneNumber
 	})
 		.sort('-updatedAt')
-		.then((documents) => {
+		.then(async(documents) => {
+
+			await addIP(req, "Get All Applications");
+
 			res.status(200).json({
 				message: 'Applications fetched successfully.',
 				documents: documents,
@@ -214,7 +306,7 @@ app.get('/io/pending/:ioPhoneNumber/:month', (req, res, next) => {
 		})
 		.catch((err) => {
 			console.error(err);
-			res.json({
+			res.status(400).json({
 				message: 'error has occured.',
 				documents: null,
 			});
@@ -222,16 +314,19 @@ app.get('/io/pending/:ioPhoneNumber/:month', (req, res, next) => {
 });
 
 
-app.get('/department/pending/:name/:month', (req, res, next) => {
+app.get('/department/:status/:name/:month', (req, res, next) => {
 	Application.find({
-		application_status: 'પેન્ડિંગ',
+		application_status: req.params.status,
 		application_date: {
 			$lt: new Date(new Date().getTime() - req.params.month * 30 * 24* 3600 * 1000),
 		},
 		path: { $regex: '.*' + req.params.name + '.*' }
 	})
 		.sort('-updatedAt')
-		.then((documents) => {
+		.then(async(documents) => {
+
+			await addIP(req, "Get All Applications");
+
 			res.status(200).json({
 				message: 'Applications fetched successfully.',
 				documents: documents,
@@ -239,7 +334,7 @@ app.get('/department/pending/:name/:month', (req, res, next) => {
 		})
 		.catch((err) => {
 			console.error(err);
-			res.json({
+			res.status(400).json({
 				message: 'error has occured.',
 				documents: null,
 			});
@@ -247,10 +342,13 @@ app.get('/department/pending/:name/:month', (req, res, next) => {
 });
 
 
-app.delete('/:_id', (req, res, next) => {
-	var filter = { _id: req.params._id };
+app.delete('/:id', (req, res, next) => {
+	var filter = { application_id: req.params.id };
 	Application.deleteOne(filter)
-		.then((document) => {
+		.then(async(document) => {
+
+			await addIP(req, "Application Deleted");
+
 			res.status(200).json({
 				message: 'Application is deleted.',
 				documents: document,
@@ -258,11 +356,27 @@ app.delete('/:_id', (req, res, next) => {
 		})
 		.catch((err) => {
 			console.error(err);
-			res.json({
+			res.status(400).json({
 				message: 'error has occured.',
 				documents: null,
 			});
 		});
 });
+
+async function addIP(req, message) {
+	const ip = RequestIp.getClientIp(req);
+	var ipEntry = new IP({
+		ip: ip,
+		executedBy: req.user.tokenkey,
+		executedOnWhat: req.body.application_id,
+		message: message,
+		time: new Date(),
+	});
+
+	if (req.user.code !== null) {
+		ipEntry['extraInfo'] = req.user.code;
+	}
+	await ipEntry.save();
+}
 
 module.exports = app;

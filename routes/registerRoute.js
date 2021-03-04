@@ -3,6 +3,8 @@
 const express = require('express');
 const app = express();
 const Register = require('../models/Register');
+const RequestIp = require('@supercharge/request-ip');
+const IP = require('../models/IP');
 
 app.post('/add', (req, res, next) => {
     const register = new Register({
@@ -13,8 +15,10 @@ app.post('/add', (req, res, next) => {
 		updatedAt: new Date(),
 	});
 
+	register.save().then(async (result) => {
 
-	register.save().then((result) => {
+		await addIP(req, 'Register Added');
+
 		res.status(201).json({
 			documents: result,
 		});
@@ -41,7 +45,10 @@ app.post('/update', (req, res, next) => {
 	};
 
 	Register.updateOne(filter, updatedDoc, options)
-		.then((result) => {
+		.then(async (result) => {
+
+			await addIP(req, 'Register Updated');
+
 			res.status(201).json({
 				message: 'register is updated.',
 				documents: result,
@@ -59,7 +66,10 @@ app.post('/update', (req, res, next) => {
 app.get('/', (req, res, next) => {
 	Register.find()
 		.sort('-updatedAt')
-		.then((documents) => {
+		.then(async (documents) => {
+
+			await addIP(req, 'Get All Registers');
+
 			res.status(200).json({
 				message: 'register Details fetched successfully.',
 				documents: documents,
@@ -77,7 +87,10 @@ app.get('/', (req, res, next) => {
 app.get('/:register_id', (req, res, next) => {
 	var filter = { register_id: req.params.register_id };
 	Register.findOne(filter)
-		.then((document) => {
+		.then(async (document) => {
+
+			await addIP(req, 'Get Register Entry');
+
 			res.status(200).json({
 				message: 'register is fetched.',
 				documents: document,
@@ -96,7 +109,10 @@ app.get('/:register_id', (req, res, next) => {
 app.delete('/:register_id', (req, res, next) => {
 	var filter = { register_id: req.params.register_id };
 	Register.deleteOne(filter)
-		.then((document) => {
+		.then(async (document) => {
+
+			await addIP(req, 'Register Deleted');
+
 			res.status(200).json({
 				message: 'Register is deleted.',
 				documents: document,
@@ -104,11 +120,26 @@ app.delete('/:register_id', (req, res, next) => {
 		})
 		.catch((err) => {
 			console.error(err);
-			res.json({
-                message: 'error has occured.',
-                documents: null
+			res.status(400).json({
+				message: 'error has occured.',
+				documents: null,
 			});
 		});
 });
+
+async function addIP(req, message) {
+	const ip = RequestIp.getClientIp(req);
+	var ipEntry = new IP({
+		ip: ip,
+		executedBy: req.user.tokenkey,
+		message: message,
+		time: new Date(),
+	});
+
+	if (req.user.code !== null) {
+		ipEntry['extraInfo'] = req.user.code;
+	}
+	await ipEntry.save();
+}
 
 module.exports = app;

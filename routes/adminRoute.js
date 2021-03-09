@@ -171,6 +171,26 @@ app.get('/:email', verifyToken, (req, res, next) => {
 		});
 });
 
+app.get('/addedby/:addedBy', verifyToken, (req, res, next) => {
+	var filter = { addedBy: req.params.addedBy };
+	Admin.findOne(filter)
+		.then(async (document) => {
+			await addIP(req, 'Get Admin Entry');
+
+			res.status(200).json({
+				message: 'Admin is fetched.',
+				documents: document,
+			});
+		})
+		.catch((err) => {
+			console.error(err);
+			res.status(400).json({
+				message: 'error has occured.',
+				documents: null,
+			});
+		});
+});
+
 
 app.delete('/:email', verifyToken, (req, res, next) => {
 	var filter = { email: req.params.email };

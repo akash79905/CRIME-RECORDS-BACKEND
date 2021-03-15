@@ -97,6 +97,16 @@ app.post('/login', (req, res, next) => {
 });
 
 app.post('/update', verifyToken, async(req, res, next) => {
+
+	Admin.findOne({ email: req.body.email }).then(async (document) => {
+		if (document === null) {
+			res.status(400).json({
+				documents: null,
+				message: 'Admin doesn't exist',
+			});
+		}
+	});
+
 	const filter = { email: req.body.email };
 	const options = { upsert: true };
 

@@ -189,7 +189,7 @@ app.get('/:name', verifyToken, (req, res, next) => {
 
 
 app.get('/level/:type', verifyToken, (req, res, next) => {
-	Department.findOne({ departmentType: req.params.type })
+	Department.find({ departmentType: req.params.type })
 		.then(async(document) => {
 
 			await addIP(req, 'Get Departments Entry');

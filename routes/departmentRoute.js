@@ -187,6 +187,28 @@ app.get('/:name', verifyToken, (req, res, next) => {
 		});
 });
 
+
+app.get('/level/:type', verifyToken, (req, res, next) => {
+	Department.findOne({ departmentType: req.params.type })
+		.then(async(document) => {
+
+			await addIP(req, 'Get Departments Entry');
+
+			res.status(200).json({
+				message: 'Department Details fetched successfully.',
+				documents: document,
+			});
+		})
+		.catch((err) => {
+			console.error(err);
+			res.status(400).json({
+				message: 'error has occured.',
+				documents: null,
+			});
+		});
+});
+
+
 app.get('/addedby/:addedBy', verifyToken, (req, res, next) => {
 	Department.findOne({ addedBy: req.params.addedBy })
 		.then(async(document) => {

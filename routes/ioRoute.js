@@ -187,7 +187,7 @@ app.get('/:phoneNumber', verifyToken, (req, res, next) => {
 		});
 });
 
-app.get('/addedby/:addedBy', verifyToken, (req, res, next) => {
+app.get('/addedbyd/:addedBy', verifyToken, (req, res, next) => {
 	var filter = { addedBy: req.params.addedBy };
 	IO.findOne(filter)
 		.then(async (document) => {

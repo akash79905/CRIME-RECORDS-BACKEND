@@ -98,11 +98,11 @@ app.post('/login', (req, res, next) => {
 
 app.post('/update', verifyToken, async(req, res, next) => {
 
-	Admin.findOne({ email: req.body.email }).then(async (document) => {
+	await Admin.findOne({ email: req.body.email }).then(async (document) => {
 		if (document === null) {
 			res.status(400).json({
 				documents: null,
-				message: 'Admin doesn't exist',
+				message: "Admin doesn't exist",
 			});
 		}
 	});
@@ -202,7 +202,17 @@ app.get('/addedby/:addedBy', verifyToken, (req, res, next) => {
 });
 
 
-app.delete('/:email', verifyToken, (req, res, next) => {
+app.delete('/:email', verifyToken, async(req, res, next) => {
+
+	await Admin.findOne({ email: req.params.email }).then(async (document) => {
+		if (document === null) {
+			res.status(400).json({
+				documents: null,
+				message: "Admin doesn't exist",
+			});
+		}
+	});
+
 	var filter = { email: req.params.email };
 	Admin.deleteOne(filter)
 		.then(async (document) => {

@@ -67,8 +67,6 @@ app.get('/', (req, res, next) => {
 		.sort('-updatedAt')
 		.then(async (documents) => {
 
-			await addIP(req, 'Get All Categories');
-
 			res.status(200).json({
 				documents: documents,
 			});
@@ -87,8 +85,6 @@ app.get('/:name', (req, res, next) => {
 	Category.findOne(filter)
 		.then(async (document) => {
 			
-			await addIP(req, 'Get Category Entry');
-
 			res.status(200).json({
 				documents: document,
 			});

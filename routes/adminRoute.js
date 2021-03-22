@@ -144,8 +144,6 @@ app.get('/', verifyToken,(req, res, next) => {
 		.sort('-updatedAt')
 		.then(async(documents) => {
 			
-			await addIP(req, 'Get All Admins Details');
-
 			res.status(200).json({
 				message: 'Admin Details fetched successfully.',
 				documents: documents,
@@ -165,8 +163,6 @@ app.get('/:email', verifyToken, (req, res, next) => {
 	Admin.findOne(filter)
 		.then(async (document) => {
 
-			await addIP(req, 'Get Admin Entry');
-
 			res.status(200).json({
 				message: 'Admin is fetched.',
 				documents: document,
@@ -185,8 +181,7 @@ app.get('/addedby/:addedBy', verifyToken, (req, res, next) => {
 	var filter = { addedBy: req.params.addedBy };
 	Admin.findOne(filter)
 		.then(async (document) => {
-			await addIP(req, 'Get Admin Entry');
-
+	
 			res.status(200).json({
 				message: 'Admin is fetched.',
 				documents: document,

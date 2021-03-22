@@ -117,18 +117,7 @@ app.post('/update', verifyToken,async (req, res, next) => {
 
 	const updatedDoc = req.body;
 	updatedDoc['password'] = await bcrypt.hash(req.body.password, saltRounds),
-		/*= {
-		$set: {
-			departmentHeadName: req.body.departmentHeadName,
-			password: await bcrypt.hash(req.body.password, saltRounds),
-			email: req.body.email,
-			phoneNumber: req.body.phoneNumber,
-			fullName: req.body.fullName,
-			address: req.body.address,
-			updatedAt: new Date(),
-		},
-	};
-*/
+		
 		Department.updateOne(filter, updatedDoc, options)
 			.then(async (result) => {
 				await addIP(req, 'Department Updated');
@@ -151,8 +140,6 @@ app.get('/', verifyToken, (req, res, next) => {
 		.sort('-updatedAt')
 		.then(async(documents) => {
 
-			await addIP(req, 'Get All Departments Details');
-
 			res.status(200).json({
 				message: 'All Departments Details fetched successfully.',
 				documents: documents,
@@ -170,8 +157,6 @@ app.get('/', verifyToken, (req, res, next) => {
 app.get('/:name', verifyToken, (req, res, next) => {
 	Department.findOne({ name: req.params.name })
 		.then(async(document) => {
-
-			await addIP(req, 'Get Department Entry');
 
 			res.status(200).json({
 				message: 'Department Details fetched successfully.',
@@ -192,8 +177,6 @@ app.get('/level/:type', verifyToken, (req, res, next) => {
 	Department.find({ departmentType: req.params.type })
 		.then(async(document) => {
 
-			await addIP(req, 'Get Departments Entry');
-
 			res.status(200).json({
 				message: 'Department Details fetched successfully.',
 				documents: document,
@@ -212,8 +195,6 @@ app.get('/level/:type', verifyToken, (req, res, next) => {
 app.get('/addedby/:addedBy', verifyToken, (req, res, next) => {
 	Department.findOne({ addedBy: req.params.addedBy })
 		.then(async(document) => {
-
-			await addIP(req, 'Get Department Entry');
 
 			res.status(200).json({
 				message: 'Department Details fetched successfully.',

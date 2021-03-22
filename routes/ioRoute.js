@@ -150,8 +150,6 @@ app.get('/', verifyToken, (req, res, next) => {
 		.sort('-updatedAt')
 		.then(async(documents) => {
 
-			await addIP(req, 'Get All IO Details');
-
 			res.status(200).json({
 				message: 'IO Details fetched successfully.',
 				documents: documents,
@@ -171,8 +169,6 @@ app.get('/:phoneNumber', verifyToken, (req, res, next) => {
 	IO.findOne(filter)
 		.then(async(document) => {
 
-			await addIP(req, 'Get IO Entry');
-
 			res.status(200).json({
 				message: 'IO entry is fetched.',
 				documents: document,
@@ -187,12 +183,11 @@ app.get('/:phoneNumber', verifyToken, (req, res, next) => {
 		});
 });
 
-app.get('/addedbyd/:addedBy', verifyToken, (req, res, next) => {
+app.get('/addedby/:addedBy', verifyToken, (req, res, next) => {
 	var filter = { addedBy: req.params.addedBy };
 	IO.findOne(filter)
 		.then(async (document) => {
-			await addIP(req, 'Get IO Entry');
-
+			
 			res.status(200).json({
 				message: 'IO entry is fetched.',
 				documents: document,

@@ -151,8 +151,6 @@ app.get('/', (req, res, next) => {
 		.sort('-updatedAt')
 		.then(async(documents) => {
 
-			await addIP(req, "Get All Applications");
-
 			res.status(200).json({
 				message: 'Applications fetched successfully.',
 				documents: documents,
@@ -180,7 +178,6 @@ app.get('/transferapps', (req, res, next) => {
 	Transfer.find(filter)
 		.sort('-updatedAt')
 		.then(async (documents) => {
-			await addIP(req, 'Get All Transfer Applications');
 
 			res.status(200).json({
 				message: 'Applications fetched successfully.',
@@ -201,8 +198,6 @@ app.get('/:application_id', (req, res, next) => {
 	Application.find({ application_id: req.params.application_id })
 		.then(async(documents) => {
 
-			await addIP(req, "Get Applications Entry");
-
 			res.status(200).json({
 				message: 'Applications fetched successfully.',
 				documents: documents,
@@ -222,8 +217,6 @@ app.get('/io/:ioPhoneNumber', (req, res, next) => {
 	Application.find({ ioPhoneNumber: req.params.ioPhoneNumber })
 		.then(async(documents) => {
 
-			await addIP(req, "Get All Applications");
-
 			res.status(200).json({
 				message: 'Applications fetched successfully.',
 				documents: documents,
@@ -241,8 +234,6 @@ app.get('/io/:ioPhoneNumber', (req, res, next) => {
 app.get('/department/:name', (req, res, next) => {
 	Application.find({ path: { "$regex": ".*"+ req.params.name +".*"} })
 		.then(async(documents) => {
-
-			await addIP(req, "Get All Applications");
 
 			res.status(200).json({
 				message: 'Applications fetched successfully.',
@@ -267,8 +258,6 @@ app.get('/:status/:month', (req, res, next) => {
 	})
 		.sort('-updatedAt')
 		.then(async(documents) => {
-
-			await addIP(req, "Get All Applications");
 
 			res.status(200).json({
 				message: 'Applications fetched successfully.',
@@ -295,8 +284,6 @@ app.get('/io/:status/:ioPhoneNumber/:month', (req, res, next) => {
 		.sort('-updatedAt')
 		.then(async(documents) => {
 
-			await addIP(req, "Get All Applications");
-
 			res.status(200).json({
 				message: 'Applications fetched successfully.',
 				documents: documents,
@@ -322,8 +309,6 @@ app.get('/department/:status/:name/:month', (req, res, next) => {
 	})
 		.sort('-updatedAt')
 		.then(async(documents) => {
-
-			await addIP(req, "Get All Applications");
 
 			res.status(200).json({
 				message: 'Applications fetched successfully.',

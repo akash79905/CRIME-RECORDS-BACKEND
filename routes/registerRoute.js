@@ -68,8 +68,6 @@ app.get('/', (req, res, next) => {
 		.sort('-updatedAt')
 		.then(async (documents) => {
 
-			await addIP(req, 'Get All Registers');
-
 			res.status(200).json({
 				message: 'register Details fetched successfully.',
 				documents: documents,
@@ -88,8 +86,6 @@ app.get('/:register_id', (req, res, next) => {
 	var filter = { register_id: req.params.register_id };
 	Register.findOne(filter)
 		.then(async (document) => {
-
-			await addIP(req, 'Get Register Entry');
 
 			res.status(200).json({
 				message: 'register is fetched.',

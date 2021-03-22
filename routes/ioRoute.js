@@ -183,7 +183,7 @@ app.get('/:phoneNumber', verifyToken, (req, res, next) => {
 		});
 });
 
-app.get('/:code', verifyToken, (req, res, next) => {
+app.get('/department/:code', verifyToken, (req, res, next) => {
 	var filter = { code: req.params.code };
 	IO.findOne(filter)
 		.then(async (document) => {

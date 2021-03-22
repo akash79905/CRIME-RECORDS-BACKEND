@@ -183,6 +183,24 @@ app.get('/:phoneNumber', verifyToken, (req, res, next) => {
 		});
 });
 
+app.get('/:code', verifyToken, (req, res, next) => {
+	var filter = { code: req.params.code };
+	IO.findOne(filter)
+		.then(async (document) => {
+			res.status(200).json({
+				message: 'IO entry is fetched.',
+				documents: document,
+			});
+		})
+		.catch((err) => {
+			console.error(err);
+			res.status(400).json({
+				message: 'error has occured.',
+				documents: null,
+			});
+		});
+});
+
 app.get('/addedby/:addedBy', verifyToken, (req, res, next) => {
 	var filter = { addedBy: req.params.addedBy };
 	IO.findOne(filter)

@@ -58,7 +58,7 @@ async function getReportFromChild(parentName, initialList) {
         }
     })
     
-    await Application.aggregate([{ $match: { at_stage: parentName, application_status: "પેન્ડિંગ" } },{ $group: { _id: '$application_subcategory', count: { $sum: 1 } } },])
+    await Application.aggregate([{ $match: { at_stage: parentName, application_status: "pending" } },{ $group: { _id: '$application_subcategory', count: { $sum: 1 } } },])
     .then((document) => {
         
         for (item of document) {

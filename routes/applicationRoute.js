@@ -324,6 +324,54 @@ app.get('/department/:status/:name/:month', (req, res, next) => {
 		});
 });
 
+app.get('/IMEI', (req, res, next) => {
+	Application.find({
+		IMEI_NO: { $exists: true },
+	})
+		.sort('-updatedAt')
+		.then(async (documents) => {
+			res.status(200).json({
+				message: 'Applications fetched successfully.',
+				documents: documents,
+			});
+		})
+		.catch((err) => {
+			console.error(err);
+			res.status(400).json({
+				message: 'error has occured.',
+				documents: null,
+			});
+		});
+});
+
+app.get('/IMEI/:IMEI_NO', (req, res, next) => {
+	Application.find({
+		IMEI_NO : req.params.IMEI_NO
+	})
+		.sort('-updatedAt')
+		.then(async (documents) => {
+
+			if (documents === null) {
+				res.status(200).json({
+					message: 'IMEI NO is not reported.',
+					documents: documents,
+				});		
+			}
+
+			res.status(200).json({
+				message: 'Applications fetched successfully.',
+				documents: documents,
+			});
+		})
+		.catch((err) => {
+			console.error(err);
+			res.status(400).json({
+				message: 'error has occured.',
+				documents: null,
+			});
+		});
+});
+
 
 app.delete('/:id', (req, res, next) => {
 	var filter = { application_id: req.params.id };

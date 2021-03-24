@@ -193,7 +193,7 @@ app.get('/level/:type', verifyToken, (req, res, next) => {
 
 
 app.get('/addedby/:addedBy', verifyToken, (req, res, next) => {
-	Department.findOne({ addedBy: req.params.addedBy })
+	Department.find({ addedBy: req.params.addedBy })
 		.then(async(document) => {
 
 			res.status(200).json({

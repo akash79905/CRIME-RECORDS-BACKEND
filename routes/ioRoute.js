@@ -185,7 +185,7 @@ app.get('/:phoneNumber', verifyToken, (req, res, next) => {
 
 app.get('/department/:code', verifyToken, (req, res, next) => {
 	var filter = { code: req.params.code };
-	IO.findOne(filter)
+	IO.find(filter)
 		.then(async (document) => {
 			res.status(200).json({
 				message: 'IO entry is fetched.',
@@ -203,7 +203,7 @@ app.get('/department/:code', verifyToken, (req, res, next) => {
 
 app.get('/addedby/:addedBy', verifyToken, (req, res, next) => {
 	var filter = { addedBy: req.params.addedBy };
-	IO.findOne(filter)
+	IO.find(filter)
 		.then(async (document) => {
 			
 			res.status(200).json({

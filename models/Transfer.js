@@ -23,7 +23,8 @@ const TransferSchema = mongoose.Schema({
 	active_flag: Boolean,
 	ioName: String,
 	ioPhoneNumber: Number,
-	path: String
+	path: String,
+	target: String
 });
 
 module.exports = mongoose.model('Transfer', TransferSchema);

@@ -22,10 +22,11 @@ app.post('/add', async (req, res, next) => {
 	var document = req.body;
 	document['updatedAt'] = new Date();
 	document['createdAt'] = new Date();
+	document['added_by'] = req.user.tokenkey;
 	document['at_stage'] = req.body.added_by;
 	var application = new Application(document);
 
-	const doc = await Department.findOne({ name: req.body.added_by });
+	const doc = await Department.findOne({ name:document.added_by });
 	application['path'] = doc.path;
 
 	application
@@ -122,6 +123,11 @@ app.post('/accept', (req, res, next) => {
 		updatedDoc['updatedAt'] = new Date();
 
 		var application = new Application(updatedDoc);
+		application['at_stage'] = req.user.tokenkey;
+			
+		let new_path = application['path'] + "/" + req.user.tokenkey;
+		application['path'] = new_path;
+
 		application.save().then((result) => {
 		
 			Transfer.deleteOne(filter)
@@ -143,6 +149,36 @@ app.post('/accept', (req, res, next) => {
 				documents: null,
 			});
 	};
+});
+
+
+app.post('/reject', (req, res, next) => {
+	try {
+		const filter = { application_id: req.body.application_id };
+		const options = { upsert: true };
+
+		var updatedDoc = req.body;
+		updatedDoc['updatedAt'] = new Date();
+
+		var application = new Application(updatedDoc);
+		
+		application.save().then((result) => {
+			Transfer.deleteOne(filter).then(async (result) => {
+				await addIP(req, 'Application Rejected');
+
+				res.status(200).json({
+					message: 'application is Rejected.',
+					documents: result,
+				});
+			});
+		});
+	} catch (err) {
+		console.error(err);
+		res.status(400).json({
+			message: 'error has occured.',
+			documents: null,
+		});
+	}
 });
 
 
@@ -172,7 +208,7 @@ app.get('/transferapps', (req, res, next) => {
 		filter = { ioPhoneNumber: req.user.tokenkey };	
 	}
 	else {
-		filter = { at_stage: req.user.tokenkey };
+		filter = { target: req.user.tokenkey };
 	}
 	console.log(filter);
 	Transfer.find(filter)

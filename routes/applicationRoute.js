@@ -230,7 +230,8 @@ app.get('/transferapps', (req, res, next) => {
 });
 
 
-app.get('/:application_id', (req, res, next) => {
+app.get('/id/:application_id', (req, res, next) => {
+
 	Application.find({ application_id: req.params.application_id })
 		.then(async(documents) => {
 
@@ -285,7 +286,7 @@ app.get('/department/:name', (req, res, next) => {
 		});
 });
 
-app.get('/:status/:month', (req, res, next) => {
+app.get('/month/:status/:month', (req, res, next) => {
 	Application.find({
 		application_status: req.params.status,
 		application_date: {
@@ -362,8 +363,8 @@ app.get('/department/:status/:name/:month', (req, res, next) => {
 
 app.get('/IMEI', (req, res, next) => {
 	Application.find({
-		IMEI_NO: { $exists: true },
-	})
+		IMEI_NO: { $exists : true }
+	})  		
 		.sort('-updatedAt')
 		.then(async (documents) => {
 			res.status(200).json({
@@ -381,31 +382,33 @@ app.get('/IMEI', (req, res, next) => {
 });
 
 app.get('/IMEI/:IMEI_NO', (req, res, next) => {
+
+
 	Application.find({
-		IMEI_NO : req.params.IMEI_NO
+		IMEI_NO : req.params.NO	
 	})
-		.sort('-updatedAt')
-		.then(async (documents) => {
+	.then(async (documents) => {
 
-			if (documents === null) {
-				res.status(200).json({
-					message: 'IMEI NO is not reported.',
-					documents: documents,
-				});		
-			}
-
-			res.status(200).json({
-				message: 'Applications fetched successfully.',
-				documents: documents,
-			});
-		})
-		.catch((err) => {
-			console.error(err);
+		if (documents === null) {
 			res.status(400).json({
-				message: 'error has occured.',
-				documents: null,
-			});
+				message: 'IMEI NO is not reported.',
+				documents: documents,
+			});		
+		}
+
+		res.status(200).json({
+			message: 'Application fetched successfully.',
+			documents: documents,
 		});
+	})
+	.catch((err) => {
+		console.error(err);
+		res.status(400).json({
+			message: 'error has occured.',
+			documents: null,
+		});
+	});
+		
 });
 
 

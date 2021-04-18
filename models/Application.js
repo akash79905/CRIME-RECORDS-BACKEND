@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const ApplicationSchema = mongoose.Schema({
 	application_id: { type: String, required: true, index: { unique: true } },
 	register_id: { type: String, required: true },
-	application_date: Date,
+	application_date: String,
 	application_content: String,
 	applicant_name: String,
 	applicant_address: String,
